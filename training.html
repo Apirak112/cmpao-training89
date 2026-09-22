@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบรายงานผลการอบรม</title>
+    <!-- นำเข้าฟอนต์ Prompt เพื่อความทันสมัยและอ่านง่าย -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- นำเข้าไอคอนจาก FontAwesome ให้เหมือนในรูปเป๊ะๆ -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        if (!localStorage.getItem('trainingLoggedIn')) {
+            window.location.href = 'index.html';
+        }
+    </script>
+    <style>
+        /* --- ส่วนของการตั้งค่าพื้นฐาน --- */
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #090d3b !important;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        /* --- ส่วนหัวของเว็บ (Header สีน้ำเงิน) --- */
+        .gov-header {
+            background-color: #0a0437; /* สีกรมท่า */
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            gap: 15px;
+        }
+
+        .header-logo {
+            width: 60px;
+            height: auto;
+            border-radius: 50%;
+            background-color: white;
+            padding: 3px;
+        }
+
+        .header-text h1 { margin: 0; font-size: 1.2rem; font-weight: 500; }
+        .header-text h2 { margin: 0; font-size: 1.1rem; font-weight: 400; color: #e0e0e0; }
+
+        /* --- กรอบเนื้อหาตรงกลาง --- */
+        .content-container {
+            max-width: 650px;
+            margin: 40px auto;
+            padding: 0 20px;
+            text-align: center;
+        }
+
+        /* --- การตั้งค่าลิงก์ทั่วไป --- */
+        a { text-decoration: none; color: #333; }
+
+        /* --- ปุ่ม Looker Studio ด้านบน --- */
+        .main-dashboard-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border-left: 8px solid #0b1945; /* แถบสีน้ำเงินซ้ายมือ */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+
+        .main-dashboard-btn .icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            color: #0c053e;
+        }
+
+        /* --- หัวข้อก่อนถึงลิงก์เกียรติบัตร --- */
+        .section-title h3 { font-size: 1.2rem; margin: 0 0 5px 0; color: white; }
+        .section-title p { font-size: 0.9rem; color: #666; margin: 0 0 20px 0; }
+
+        /* --- กล่องลิงก์ดาวน์โหลดเกียรติบัตร --- */
+        .cert-links {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .cert-btn {
+            display: flex;
+            align-items: center;
+            background-color: rgb(246, 246, 249);
+            padding: 15px 20px;
+            border-radius: 8px;
+            border-left: 8px solid #f1f2f5;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+
+        .cert-btn .icon {
+            font-size: 1.8rem;
+            margin-right: 20px;
+            color: #0b1945;
+        }
+
+        .cert-btn span { font-weight: 500; line-height: 1.4; }
+
+        /* --- เอฟเฟกต์ตอนเอาเมาส์ไปชี้ (Hover) --- */
+        .main-dashboard-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(226, 220, 220, 0.1);
+        }
+
+        .cert-btn:hover {
+            background-color: #eaeaf1; /* เปลี่ยนเป็นสีฟ้าอ่อนๆ */
+            border-left: 8px solid #a41b74; /* แถบด้านซ้ายเปลี่ยนเป็นสีทอง */
+            transform: translateY(-2px);
+        }
+
+        /* --- รูปแบบปุ่ม 3 ขีด --- */
+        .menu-toggle {
+            position: absolute; 
+            left: 20px; 
+            color: white;
+            font-size: 1.8rem; 
+            cursor: pointer;
+            z-index: 1001; /* ต้องอยู่บนสุด */
+        }
+
+        /* --- รูปแบบเมนูสไลด์ --- */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -250px; /* ซ่อนไว้ทางซ้ายสุดจอ */
+            width: 250px;
+            height: 100vh;
+            background-color: #0d0338; /* สีเทาอ่อน */
+            padding-top: 80px; /* เว้นที่ด้านบนไม่ให้ทับปุ่ม */
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+            transition: 0.3s ease; /* ทำให้สไลด์ออกมานุ่มๆ */
+            z-index: 1000;
+        }
+
+        /* เมื่อถูกกด คลาส active จะทำงานและดึงเมนูออกมา */
+        .sidebar.active {
+            left: 0; 
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 15px 30px;
+            color: #efeff3;
+            text-decoration: none;
+            font-size: 1.1rem;
+            border-bottom: 1px solid #16033e;
+        }
+
+        .sidebar a:hover {
+            background-color: #edecf3;
+            color: #0b1945;
+        }
+
+        /* สไตล์ปุ่มพรีเมียมเดิม (สำหรับลิงก์ดาวน์โหลดด้านล่าง) */
+        .custom-link-btn {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            color: #1e293b;
+            padding: 20px 28px;
+            border-radius: 18px;
+            text-decoration: none;
+            font-size: 1.05rem;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 
+                        inset 0 1px 0 rgba(255, 255, 255, 1),
+                        inset 0 -2px 0 rgba(0, 0, 0, 0.05);
+            border: 1px solid #cbd5e1;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin: 15px auto;
+            max-width: 780px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .custom-link-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            transition: 0.5s;
+        }
+
+        .custom-link-btn:hover::before {
+            left: 100%;
+        }
+
+        .custom-link-btn:hover {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: 0 20px 40px rgba(37, 99, 235, 0.2), 
+                        0 0 20px rgba(59, 130, 246, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 1);
+            border-color: #3b82f6;
+            color: #1d4ed8;
+        }
+
+        .custom-link-btn i {
+            font-size: 1.4rem;
+            color: #ffffff;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            padding: 12px;
+            border-radius: 14px;
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        .custom-link-btn:hover i {
+            transform: scale(1.1) rotate(-5deg);
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        }
+
+        /* 🚪 สไตล์ปุ่มออกจากระบบสุดพรีเมียม */
+        .sidebar-logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 25px;
+            color: #fca5a5 !important;
+            text-decoration: none;
+            font-size: 16px;
+            background: rgba(239, 68, 68, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-logout-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444 !important;
+            padding-left: 30px;
+            border-left: 4px solid #ef4444;
+        }
+
+        /* =========================================
+           🌊 โค้ดปุ่ม 3D โทนน้ำเงิน-ฟ้า (ปุ่มรอง)
+           ========================================= */
+        .btn-blue-gradient {
+            background: linear-gradient(135deg, #020617 0%, #1e3a8a 40%, #0284c7 75%, #38bdf8 100%) !important;
+            box-shadow: 
+                inset 0 2px 4px rgba(255, 255, 255, 0.4),  
+                inset 0 -3px 5px rgba(0, 0, 0, 0.4),       
+                0 6px 0 #1e3a8a,                           
+                0 10px 20px rgba(2, 132, 199, 0.6) !important; 
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7) !important;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        }
+
+        .btn-blue-gradient::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            transition: all 0.7s ease;
+            pointer-events: none;
+        }
+        
+        .btn-blue-gradient:hover::after {
+            left: 200%;
+        }
+
+        .btn-blue-gradient i {
+            background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%) !important;
+            color: #0284c7 !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+        }
+
+        .btn-blue-gradient:hover {
+            transform: translateY(-4px) !important;
+            box-shadow: 
+                inset 0 2px 4px rgba(255, 255, 255, 0.5),
+                inset 0 -3px 5px rgba(0, 0, 0, 0.3),
+                0 10px 0 #1e3a8a,                         
+                0 15px 30px rgba(2, 132, 199, 0.8) !important; 
+            filter: brightness(1.1);
+            color: #ffffff !important;
+        }
+
+        .btn-blue-gradient:active {
+            transform: translateY(4px) !important;
+            box-shadow: 
+                inset 0 2px 4px rgba(255, 255, 255, 0.2),
+                inset 0 -3px 5px rgba(0, 0, 0, 0.5),
+                0 2px 0 #1e3a8a,                          
+                0 5px 10px rgba(2, 132, 199, 0.4) !important;
+        }
+
+        /* =========================================
+           👑 โค้ดปุ่ม 3D สีสดจัดจ้าน โทนน้ำเงิน-ม่วง-ชมพูแดง (ปุ่มหลัก โดดเด่นที่สุด!)
+           ========================================= */
+        .btn-looker-gradient {
+            /* สีสดและสว่างขึ้น พุ่งกระแทกตา */
+            background: linear-gradient(135deg, #1d4ed8 0%, #7e22ce 40%, #e11d48 75%, #be123c 100%) !important;
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.6),  /* แสงตกกระทบขอบบนสว่างขึ้น */
+                inset 0 -4px 6px rgba(0, 0, 0, 0.5),       /* เงาด้านล่างในปุ่มลึกขึ้น */
+                0 8px 0 #4a044e,                           /* ฐาน 3D หนาขึ้น */
+                0 15px 35px rgba(225, 29, 72, 0.7) !important; /* ออร่าเรืองแสงกว้างและสว่างกว่าเดิม */
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            color: #ffffff !important;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8) !important;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            /* เพิ่มขนาดให้ดูเป็นปุ่มหลัก (Primary Button) */
+            transform: scale(1.02);
+            z-index: 10;
+        }
+
+        /* แสงวิ่งแว้บๆ ตอนเอาเมาส์ชี้ */
+        .btn-looker-gradient::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            transition: all 0.7s ease;
+            pointer-events: none;
+        }
+        
+        .btn-looker-gradient:hover::after {
+            left: 200%;
+        }
+
+        /* เปลี่ยนสีไอคอนด้านในปุ่มนี้ให้เข้าตีม */
+        .btn-looker-gradient i {
+            background: linear-gradient(135deg, #ffffff 0%, #ffe4e6 100%) !important;
+            color: #e11d48 !important; /* ไอคอนสีแดงสดให้เข้ากับปุ่ม */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.8) !important;
+        }
+
+        .btn-looker-gradient:hover {
+            transform: scale(1.04) translateY(-4px) !important; /* ขยายร่างตอนโฮเวอร์ให้ดูอลังการ */
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.7),
+                inset 0 -4px 6px rgba(0, 0, 0, 0.4),
+                0 12px 0 #4a044e,                         
+                0 20px 40px rgba(225, 29, 72, 0.9) !important; /* ออร่าระเบิดพลัง */
+            filter: brightness(1.15);
+            color: #ffffff !important;
+        }
+
+        .btn-looker-gradient:active {
+            transform: scale(1.02) translateY(6px) !important;
+            box-shadow: 
+                inset 0 2px 4px rgba(255, 255, 255, 0.3),
+                inset 0 -5px 8px rgba(0, 0, 0, 0.6),
+                0 2px 0 #4a044e,                          
+                0 8px 15px rgba(225, 29, 72, 0.5) !important;
+        }
+        /* 🌟 กล่องแจ้งเตือนข้อมูล */
+.info-banner {
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px dashed rgba(96, 165, 250, 0.4);
+    color: #e2e8f0;
+    padding: 15px 20px;
+    border-radius: 15px;
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 20px; /* ระยะห่างก่อนถึงปุ่ม */
+    line-height: 1.6;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.info-banner i {
+    color: #60a5fa;
+    margin-right: 5px;
+}
+
+.info-banner b {
+    color: #93c5fd;
+}
+    </style>
+</head>
+<script>
+    const loggedIn = localStorage.getItem('trainingLoggedIn');
+
+    if (loggedIn !== 'true') {
+        window.location.replace('login.html');
+    }
+</script>
+<body>
+    <!-- แถบด้านบน -->
+    <div class="gov-header">
+        <!-- ปุ่ม 3 ขีด (มีคำสั่ง onclick เพื่อเรียกใช้เมนู) -->
+    <div class="menu-toggle" onclick="toggleMenu()">
+        <i class="fa-solid fa-bars"></i>
+    </div>
+
+   <div class="sidebar" id="mySidebar">
+    <!-- เปลี่ยนตรง href ให้เป็น index.html แบบบรรทัดล่างนี้เลยครับ -->
+    <a href="naruk.html"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+    <a href="training.html"><i class="fa-solid fa-book"></i> รายละเอียดการอบรม</a>
+    <a href="manual.html" class="active"><i class="fa-solid fa-file-lines"></i> ขออนุมัติการอบรม</a>
+    <a href="contact.html"><i class="fa-solid fa-phone"></i> ช่องทางการติดต่อ</a>
+    <!-- ปุ่มออกจากระบบ (ดีไซน์พรีเมียม) -->
+    <a href="#" onclick="localStorage.removeItem('trainingLoggedIn'); window.location.href='login.html'; return false;" class="sidebar-logout-btn">
+        <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
+    </a>
+</div>
+        <!-- คุณสามารถเปลี่ยนลิงก์รูปโลโก้ตรง src ได้เลย -->
+        <div class="header-text">
+            <h1>องค์การบริหารส่วนจังหวัดเชียงใหม่</h1>
+            <h2>รายละเอียดการอบรม</h2>
+        </div>
+    </div>
+
+ <!-- ส่วนเนื้อหาหลัก -->
+    <main class="content-container">
+        
+        <!-- กล่องอธิบายข้อมูล -->
+<div class="info-banner">
+    <i class="fa-solid fa-circle-info"></i>
+    <b>หมายเหตุ:</b> ทั้ง 2 เมนูด้านล่างนี้คือ <b>ข้อมูลชุดเดียวกัน</b> <br>
+    โดยสามารถเลือกดูได้ทั้งแบบหน้าเว็บ (ตัวหลัก) หรือแบบ Dashboard (ตัวรอง)
+</div>
+
+        <!-- 🌟 1. Dashboard เพิ่มเติม (ย้ายมาไว้บนสุด + เว้นระยะห่างด้านล่าง 30px) -->
+        <a href="https://roaring-klepon-500e70.netlify.app/" class="custom-link-btn btn-looker-gradient" target="_blank" rel="noopener noreferrer" style="margin-bottom: 30px;">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>ตัวหลัก คลิกเพื่อเปิด ดูข้อมูลการอบรมในรูปแบบ หน้าเว็บเเสดงผลข้อมูล</span>
+        </a>
+
+        <!-- 🌟 2. ปุ่มไป เว็บไซต์เเสดงผลข้อมูล (ย้ายมาอยู่ด้านล่างปุ่ม Looker) -->
+        <a href="dashboard.html" class="custom-link-btn btn-blue-gradient" target="_blank">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>ตัวรอง คลิกเพื่อเปิดดูข้อมูลการอบรมในรูปแบบ Dashboard (Looker Studio)</span>
+        </a>
+
+        <!-- หัวข้อย่อย -->
+        <div class="section-title" style="margin: 35px 0 20px; text-align: center;">
+            <h3 style="font-size: 1.25rem; font-weight: 500; margin-bottom: 5px; color: white;">ตรวจสอบรายชื่อและดาวน์โหลดเกียรติบัตร</h3>
+            <p style="color: #c7c8d9; font-size: 0.95rem;">กรุณาคลิกเลือกปีที่ท่านเข้ารับการอบรม เพื่อดูรายชื่อและเกียรติบัตร</p>
+        </div>
+
+        <!-- รายการลิงก์ดาวน์โหลด (ใช้คลาสปุ่มพรีเมียมอันเดียวกัน) -->
+        <div class="cert-links">
+            <a href="https://docs.google.com/spreadsheets/d/1WwdWHhAB08ekTZwruQSlLaxd5TlYFXc4SNiaKxVFfHw/edit?usp=drive_link" class="custom-link-btn" target="_blank">
+                <i class="fa-solid fa-folder-open"></i>
+                <span>รายชื่อผู้รับการอบรมพร้อมเกียรติบัตร พ.ศ. 2567</span>
+            </a>
+            
+            <a href="https://docs.google.com/spreadsheets/d/1WOxJJ4XHlfq8z8AgRYbHXdG2Yl666FOKNPP5XqxEM5Q/edit?usp=drive_link" class="custom-link-btn" target="_blank">
+                <i class="fa-solid fa-folder-open"></i>
+                <span>รายชื่อผู้รับการอบรมพร้อมเกียรติบัตร พ.ศ. 2568</span>
+            </a>
+            
+            <a href="https://docs.google.com/spreadsheets/d/1yE0nm06Yg-Mrwb63xgjr0ZcaAGSgKhTnve-WiqykCMY/edit?usp=drive_link" class="custom-link-btn" target="_blank">
+                <i class="fa-solid fa-folder-open"></i>
+                <span>รายชื่อผู้รับการอบรมพร้อมเกียรติบัตร พ.ศ. 2569</span>
+            </a>
+        </div>
+
+    </main>
+    
+</body>
+<!-- สคริปต์สำหรับเปิด/ปิดเมนู -->
+    <script>
+        function toggleMenu() {
+            var sidebar = document.getElementById("mySidebar");
+            sidebar.classList.toggle("active");
+        }
+    </script>
+
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบฐานข้อมูลบุคลากร - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Sarabun', sans-serif; }
+        body { background-color: #f3f6f9; height: 100vh; display: flex; flex-direction: column; }
+        
+        .top-bar { 
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); 
+            color: white; 
+            padding: 15px 25px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
+        }
+        .top-bar h1 { font-size: 1.3rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
+        
+        /* จัดกลุ่มปุ่มด้านขวาบนให้อยู่ด้วยกัน */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* สไตล์ปุ่มแบบใหม่ ใช้ได้ทั้งปุ่มย้อนกลับและปุ่มเต็มจอ */
+        .btn { 
+            background: rgba(255, 255, 255, 0.2); 
+            color: white; 
+            padding: 8px 18px; 
+            text-decoration: none; 
+            border-radius: 20px; 
+            font-weight: bold; 
+            font-size: 0.95rem;
+            border: 1px solid rgba(255,255,255,0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover { background: white; color: #1e3a8a; }
+        
+        .dashboard-container { flex: 1; padding: 20px; width: 100%; height: 100%; max-width: 1400px; margin: 0 auto; }
+        .dashboard-container iframe { 
+            width: 100%; 
+            height: 100%; 
+            min-height: 800px;
+            border: none; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            background: white;
+        }
+        /* ================= รองรับหน้าจอมือถือ (แบบปัดซ้ายขวาได้ กราฟไม่หด) ================= */
+@media (max-width: 768px) {
+    /* จัดปุ่มด้านบนไม่ให้เบียดกัน */
+    .top-bar {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    .action-buttons {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    /* เปิดฟังก์ชันให้ใช้นิ้วปัดเลื่อนซ้าย-ขวาได้ */
+    .dashboard-container {
+        padding: 10px;
+        overflow-x: auto; 
+        -webkit-overflow-scrolling: touch; /* ทำให้ปัดในมือถือได้ลื่นขึ้น */
+    }
+    
+    /* บังคับแดชบอร์ดให้กว้างเท่าจอคอม กราฟจะได้ไม่หดเล็กลง */
+    .dashboard-container iframe {
+        width: 1200px !important; 
+        min-width: 1200px;
+        height: 800px !important;
+    }
+}
+    </style>
+</head>
+<body>
+
+    <!-- แถบเมนูด้านบน -->
+    <div class="top-bar">
+        <h1> ภาพรวมการอบรมบุคลากร (Dashboard)</h1>
+        
+        <!-- กลุ่มปุ่มกด -->
+        <div class="action-buttons">
+            <!-- ปุ่มขยายเต็มจอ -->
+            <button onclick="openFullScreen()" class="btn">🔲 ขยายเต็มจอ</button>
+            
+            <!-- 👇 ปุ่มใหม่: ลิงก์ตรงไปที่ Looker Studio (เปิดใน tab ใหม่) -->
+            <a href="https://datastudio.google.com/reporting/66f15a3a-68fd-4277-8995-39e3f1cfffdc" target="_blank" class="btn">🔗 เปิดใน Looker Studio</a>
+            
+            <!-- ปุ่มย้อนกลับ -->
+            <a href="training.html" class="btn">⬅️ กลับหน้าหลัก</a>
+        </div>
+    </div>
+
+    <!-- พื้นที่แสดงผล Dashboard -->
+    <div class="dashboard-container">
+        <!-- สังเกตว่าผมแอบเติม id="myDashboard" เข้าไป เพื่อให้โค้ดข้างล่างหาเจอครับ -->
+        <iframe 
+            id="myDashboard"
+            src="https://datastudio.google.com/embed/reporting/66f15a3a-68fd-4277-8995-39e3f1cfffdc/page/p_pjeexptp6d" 
+            frameborder="0" 
+            style="border:0" 
+            allowfullscreen>
+        </iframe>
+    </div>
+
+    <!-- สคริปต์สมองกลสำหรับสั่งขยายเต็มจอ -->
+    <script>
+        function openFullScreen() {
+            var elem = document.getElementById("myDashboard");
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen(); // เบราว์เซอร์ทั่วไป
+            } else if (elem.webkitRequestFullscreen) { 
+                elem.webkitRequestFullscreen(); // สำหรับ Safari
+            } else if (elem.msRequestFullscreen) { 
+                elem.msRequestFullscreen(); // สำหรับ Internet Explorer/Edge รุ่นเก่า
+            }
+        }
+    </script>
+
+</body>
+</html>

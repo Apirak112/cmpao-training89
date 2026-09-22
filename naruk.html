@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <script>
+    // ตรวจสอบว่าผู้ใช้เข้าสู่ระบบแล้วหรือยัง
+    const loggedIn = localStorage.getItem('trainingLoggedIn');
+
+    // ถ้ายังไม่ได้เข้าสู่ระบบ ให้กลับไปหน้า Login
+    if (loggedIn !== 'true') {
+        window.location.replace('index.html');
+    }
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>องค์การบริหารส่วนจังหวัดเชียงใหม่</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- เพิ่ม FontAwesome เพื่อให้ไอคอน (บ้าน, หนังสือ, โทรศัพท์, 3 ขีด) แสดงผลครับ -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </script>
+    <style>
+        /* รีเซ็ตค่าเริ่มต้น */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Kanit', sans-serif; }
+        body { background-color: #ffffff; color: #333333; overflow-x: hidden; }
+
+        /* ----- ส่วนแถบเมนูด้านบน (Header) ----- */
+        .header {
+            background-color: #0a0437; 
+            height: 100px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        /* ตั้งค่าขนาดรูปโลโก้ของจริง */
+        .real-logo {
+            height: 80px; 
+            width: auto;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+
+       /* --- รูปแบบเมนูสไลด์ (พื้นหลังสีเทาอ่อน) --- */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px; /* ซ่อนไว้ทางซ้าย */
+            width: 280px; /* ความกว้างเมนู */
+            height: 100vh;
+            background-color: #0d0338; /* สีเทาอ่อนแบบในรูป */
+            padding-top: 30px;
+            box-shadow: 2px 0 10px rgba(244, 241, 241, 0.1);
+            /* หาบรรทัด transition ใน .sidebar แล้วแก้เป็นแบบนี้ครับ */
+    transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 1000;
+        }
+
+        .sidebar.active {
+            left: 0; 
+        }
+
+        /* --- รูปแบบตัวหนังสือและไอคอน --- */
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 15px 30px;
+            color: #e8e7ec; 
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 400;
+            transition: 0.2s;
+        }
+
+        /* กำหนดขนาดและระยะห่างของไอคอนให้เท่ากันทุกบรรทัด */
+        .sidebar a i {
+            width: 35px;
+            font-size: 1.2rem;
+            color: #e0dfdf; 
+        }
+
+       /* เมื่อเอาเมาส์ไปชี้ (Hover) ที่เมนู */
+    .sidebar a:hover {
+        background-color: #ffffff; /* พื้นหลังเปลี่ยนเป็นสีขาว */
+        color: #000000; /* ตัวหนังสือเปลี่ยนเป็นสีดำอัตโนมัติ */
+    }
+
+    /* สั่งให้ไอคอนเปลี่ยนเป็นสีดำตามด้วย */
+    .sidebar a:hover i {
+        color: #000000; 
+    }
+        /* ----- ส่วนเนื้อหาหลัก (Main Content) ----- */
+        .container { padding: 20px; max-width: 700px; margin: 0 auto; }
+        .main-title { color: #1f0b49; font-size: 28px; text-align: center; margin: 20px 0; line-height: 1.4; }
+        .divider { border: 0; height: 2px; background-color: #f6f3f6; margin: 20px 0; }
+        
+        /* กล่องแทนที่รูปภาพ */
+        .image-placeholder { width: 100%; height: 250px; background-color: #dcdcdc; display: flex; justify-content: center; align-items: center; color: #666; margin-bottom: -15px; }
+        .news-banner { background-color: #22095c; color: rgb(255, 255, 255); padding: 10px 15px; font-size: 16px; position: relative; z-index: 1; display: flex; align-items: center; }
+        .news-caption { font-size: 14px; color: #555555; margin-top: 15px; margin-bottom: 20px; }
+        .read-btn { display: block; width: 100%; background-color: #240964; color: white; text-align: center; padding: 15px; font-size: 18px; border: none; border-radius: 5px; cursor: pointer; transition: 0.3s; }
+        .read-btn:hover { background-color: #1a0b4d; }
+        /* จัดตำแหน่งปุ่ม 3 ขีด ให้อยู่ตรงพื้นที่ว่างด้านบนเมนู */
+    .sidebar-bars {
+        font-size: 1.5rem;
+        color: #333; /* สีเดียวกับตัวหนังสือเมนู */
+        margin-left: 35px; /* ขยับให้ตรงกับไอคอนบ้านเป๊ะๆ */
+        margin-bottom: 25px; /* เว้นระยะห่างด้านล่างนิดนึง */
+        cursor: pointer;
+        display: block; /* บังคับให้อยู่บรรทัดของตัวเอง */
+    }
+   /* --- กล่อง Slider แบบคลีน ปรับขนาดและกึ่งกลางในตัว --- */
+        .banner-box {
+            width: 90%;          /* ให้ความกว้างยืดหยุ่นตามหน้าจอ (เผื่อดูในมือถือ) */
+            max-width: 1100px;    /* แต่จำกัดความกว้างสูงสุดไว้แค่นี้ รูปจะได้ไม่ใหญ่ทะลุจอ */
+            height: 370px;       /* ความสูงของรูปภาพ ปรับแก้ตัวเลขได้ตามใจชอบ */
+            margin: 30px auto;   /* auto จะช่วยคำนวณซ้ายขวาให้มันอยู่ "กึ่งกลาง" เสมอ */
+            background-color: #0b1945; 
+            position: relative; 
+            padding: 0;
+            display: block; 
+            overflow: hidden; 
+            border-radius: 8px; 
+        }
+        /* --- CSS สำหรับ Image Slider --- */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0; /* รูปที่ไม่ได้แสดงให้โปร่งใส */
+            transition: opacity 0.7s ease-in-out; /* เอฟเฟกต์ Fade 700ms นุ่มนวล */
+            z-index: 1;
+        }
+        .slide.active {
+            opacity: 1; /* แสดงรูปปัจจุบัน */
+            z-index: 2;
+        }
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* จัดให้เต็มกรอบแบบสมส่วน */
+        }
+
+        /* --- ปุ่มลูกศร ซ้าย-ขวา --- */
+        .prev, .next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 10px 15px;
+            color: white;
+            font-size: 24px;
+            transition: 0.3s ease;
+            background-color: rgba(0, 0, 0, 0.15); /* โปร่งใสเล็กน้อย */
+            user-select: none;
+            z-index: 3;
+            opacity: 0.4; /* จางๆ ตอนยังไม่เอาเมาส์ชี้รูป */
+        }
+        .prev { left: 10px; border-radius: 4px; }
+        .next { right: 10px; border-radius: 4px; }
+        
+        /* แสดงลูกศรชัดขึ้นเมื่อเอาเมาส์ชี้ที่แถบรูปภาพทั้งหมด */
+        .banner-box:hover .prev,
+        .banner-box:hover .next {
+            opacity: 1;
+        }
+        
+        /* Hover ลูกศรให้พื้นหลังเข้มขึ้นนิดนึงแบบเรียบหรู */
+        .prev:hover, .next:hover {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+
+        /* --- จุดแสดงตำแหน่งรูป (Dots) --- */
+        .dots-container {
+            position: absolute;
+            bottom: 12px;
+            width: 100%;
+            text-align: center;
+            z-index: 3;
+        }
+        .dot {
+            cursor: pointer;
+            height: 8px;
+            width: 8px;
+            margin: 0 4px;
+            background-color: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3); /* เพิ่มเงาให้จุดดูมีมิติบนพื้นสว่าง */
+        }
+        .dot.active, .dot:hover {
+            background-color: #ffffff; /* จุดรูปปัจจุบันจะเป็นสีขาวทึบ */
+        }
+        /* =========================================
+           ส่วนที่เพิ่มใหม่: ตกแต่งชื่อระบบและ Animation
+           ========================================= */
+
+        /* --- 1. ชื่อระบบเหนือ Slider --- */
+        .system-title-container {
+            text-align: center;
+            margin-bottom: 35px;
+            margin-top: 10px;
+        }
+        .title-en {
+            font-size: 0.85rem;
+            color: #d6d7db; /* สี Navy Blue */
+            letter-spacing: 3px;
+            font-weight: 600;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards 0.3s; /* Fade In อันดับ 1 */
+        }
+        .title-th {
+            font-size: 2.2rem;
+            color: #d6d7db; /* สี Navy Blue */
+            font-weight: 600;
+            margin: 8px 0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUpFade 1s ease forwards 0.6s; /* เลื่อนขึ้นนุ่มนวล อันดับ 2 */
+        }
+        .title-line {
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #9f1b87, transparent); /* สี Gold */
+            width: 0;
+            margin: 15px auto;
+            animation: expandLine 1s ease forwards 0.9s; /* เส้นขยายออก อันดับ 3 */
+        }
+        .title-org {
+            font-size: 1.1rem;
+            color: #555;
+            font-weight: 400;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards 1.2s; /* Fade In อันดับ 4 */
+        }
+
+        /* --- 2. ส่วน Intro Section ใต้ Slider --- */
+        .intro-section {
+            background-color: #ffffff;
+            padding: 35px 30px;
+            border-radius: 8px;
+            margin: 30px 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            border-top: 4px solid #0b1945; /* แถบสี Navy ด้านบน */
+            text-align: center;
+        }
+        .intro-icon {
+            font-size: 2.5rem;
+            color: #99246c; /* สี Gold */
+            margin-bottom: 15px;
+        }
+        .intro-title {
+            color: #0b1945;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .intro-desc {
+            color: #666;
+            line-height: 1.6;
+            font-size: 1rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* --- 3. คลาสสำหรับ Scroll Animation --- */
+        .fade-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .fade-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- 4. Keyframes สำหรับ Animation ตอนเปิดหน้าเว็บ --- */
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        @keyframes slideUpFade {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes expandLine {
+            to { width: 120px; }
+        }
+
+        /* *สำคัญ* ให้หา .banner-box ของเดิม แล้วเพิ่ม 2 บรรทัดนี้เข้าไปข้างใน เพื่อให้ Slider Fade in เป็นลำดับสุดท้าย */
+        /* 
+        .banner-box {
+            ... (โค้ดเดิม) ...
+            opacity: 0;
+            animation: fadeIn 1s ease forwards 1.5s; 
+        } 
+        */
+        /* --- จัดระเบียบแถบข่าวประชาสัมพันธ์ให้กว้างเท่า Slider --- */
+        .news-wrapper {
+            width: 80% !important; 
+            max-width: 900px !important; /* บังคับให้กว้างเท่ากรอบรูปเป๊ะๆ */
+            margin: 0 auto 20px auto !important; /* จัดให้อยู่กึ่งกลางหน้าจอ */
+            text-align: left !important;
+        }
+
+        /* --- ปรับปุ่มอ่านรายละเอียดให้หดสั้นลง และอยู่กึ่งกลาง --- */
+        .detail-btn-wrapper {
+            text-align: center !important; /* ดันปุ่มให้ไปอยู่ตรงกลาง */
+            margin-top: 20px !important;
+            margin-bottom: 50px !important;
+        }
+        .detail-btn {
+            display: inline-block !important; /* เปลี่ยนจากบล็อกยาวๆ ให้เป็นปุ่ม */
+            width: 250px !important; /* บังคับความกว้างปุ่มให้เหลือแค่ 250px */
+            border-radius: 8px !important; /* เพิ่มความโค้งมนให้เข้ากับดีไซน์ใหม่ */
+            box-sizing: border-box !important;
+        }
+        /* ==========================================
+           กล่องกิจกรรม (Slider ตัวที่ 2)
+           ========================================== */
+        .activity-banner-box {
+            width: 80% !important; 
+            max-width: 1000px !important; 
+            height: 380px !important; 
+            margin: 20px auto 30px auto !important; 
+            background-color: #0b1945; 
+            position: relative; 
+            padding: 0;
+            display: block; 
+            overflow: hidden; 
+            border-radius: 8px; 
+        }
+        
+        /* เอฟเฟกต์ Fade สำหรับ Slider ตัวที่ 2 */
+        .act-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.7s ease-in-out;
+            z-index: 1;
+        }
+        .act-slide.active {
+            opacity: 1;
+            z-index: 2;
+        }
+        .act-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        /* ==========================================
+           หัวข้อคั่นระหว่างกล่องรูปภาพ (โครงการที่อบรมล่าสุด)
+           ========================================== */
+       /* ==========================================
+           หัวข้อคั่นระหว่างกล่องรูปภาพ (แบบมีพื้นหลัง)
+           ========================================== */
+        .recent-project-title {
+            width: 80% !important; 
+            max-width: 900px !important; 
+            margin: 30px auto 15px auto !important; 
+            text-align: left; 
+            
+            /* ส่วนที่เพิ่มความสวยงามให้เป็นกล่อง */
+            background-color: #ae1062; /* สีพื้นหลังกรมท่า */
+            color: #ffffff; /* ตัวหนังสือสีขาวให้ตัดกับพื้นหลัง */
+            font-size: 1.3rem;
+            font-weight: bold;
+            padding: 12px 20px; /* เพิ่มพื้นที่ว่างรอบตัวหนังสือให้ดูเป็นกล่อง */
+            border-left: 6px solid #140f74; /* แถบสีทองด้านหน้าให้หนาขึ้นนิดนึง */
+            border-radius: 6px; /* มุมกล่องโค้งมนรับกับรูปภาพ */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* เพิ่มเงาบางๆ ให้กล่องดูลอยขึ้นมามีมิติ */
+            box-sizing: border-box; /* บังคับให้ขนาดกล่องพอดีกับรูปด้านล่างเป๊ะๆ */
+        }
+        /* ==========================================
+           ปรับกรอบกล่องรูปภาพกิจกรรม (เรียบร้อย เป็นทางการ มีมิติเล็กน้อย)
+           ========================================== */
+        .activity-banner-box {
+            width: 80% !important; 
+            max-width: 900px !important; 
+            height: 350px !important; 
+            margin: 0 auto 30px auto !important; 
+            
+            /* --- ดีไซน์กรอบที่ปรับปรุงใหม่ --- */
+            background-color: #1d0759; /* พื้นหลังสีขาวให้ดูสะอาดตา */
+            padding: 8px; /* จัดระยะห่างรอบรูป (เว้นขอบขาว) ให้ดูเรียบร้อย */
+            border: 1px solid #1a0c60; /* เส้นขอบสีเทาอ่อน สุภาพ ไม่ฉูดฉาด */
+            border-radius: 8px; /* ขอบมนเล็กน้อยให้ดูทันสมัย */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* เพิ่มมิติเงาบางๆ อย่างนุ่มนวล */
+            
+            position: relative; 
+            display: block; 
+            box-sizing: border-box; 
+        }
+        
+        .activity-banner-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px; /* มุมรูปภาพโค้งมนรับกับกรอบด้านนอกอย่างพอดี */
+        }
+        /* ==========================================
+           แถบคำอธิบายใต้รูปภาพ (แบบพับเก็บได้ - Accordion)
+           ========================================== */
+        .description-accordion-container {
+            width: 80% !important; 
+            max-width: 900px !important; 
+            margin: -15px auto 40px auto !important; /* ดึงขึ้นไปให้ใกล้กรอบรูปภาพด้านบน */
+            text-align: left;
+        }
+        
+        .accordion-btn {
+            background-color: #ffffff;
+            color: #0b1945; /* ตัวหนังสือสีกรมท่า */
+            cursor: pointer;
+            padding: 15px 20px;
+            width: 100%;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px; /* ขอบมนให้เข้ากับกล่องรูปภาพ */
+            text-align: left;
+            font-size: 1rem;
+            font-weight: bold;
+            font-family: inherit;
+            transition: background-color 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* เงาบางๆ สุภาพ */
+            outline: none;
+        }
+        
+        .accordion-btn:hover {
+            background-color: #f8f9fa; /* สีเปลี่ยนนิดนึงตอนเอาเมาส์ชี้ */
+        }
+        
+        .accordion-btn.active {
+            border-radius: 8px 8px 0 0; /* เวลากดเปิด ให้ขอบด้านล่างตรง */
+            border-bottom: 1px dashed #cccccc;
+        }
+        
+        .accordion-btn.active .accordion-icon {
+            transform: rotate(180deg); /* หมุนลูกศรชี้ขึ้นตอนเปิด */
+        }
+        
+        .accordion-icon {
+            transition: transform 0.3s ease;
+            font-size: 0.8rem;
+            color: #2d197e; /* ลูกศรสีทองให้เข้ากับธีม */
+        }
+        .news-vertical-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 30px; 
+        margin-top: 20px;
+        width: 100%;
+    }
+
+    .news-card-modern {
+        position: relative;
+        width: 100%;
+        max-width: 750px; /* 🟢 ปรับความกว้างสูงสุดให้แคบลง (จากเดิม 800px) */
+        height: 380px;    /* 🟢 ปรับความสูงให้เตี้ยลง (จากเดิม 400px) */
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        display: block;   
+        text-decoration: none; 
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin: 0 auto 30px auto;
+    }
+
+    /* 🚀 คำสั่งทำให้กล่อง "ลอยขึ้น" และ "เงาเข้มขึ้น" ตอนเมาส์ชี้ */
+    .news-card-modern:hover {
+        transform: translateY(-10px); /* สั่งให้กล่องเด้งลอยขึ้น 10px */
+        box-shadow: 0 15px 30px rgba(0,0,0,0.25); /* เพิ่มความเข้มของเงาให้ดูลอยจริง */
+    }
+
+    .news-card-modern img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease; 
+    }
+
+    .news-card-modern:hover img {
+        transform: scale(1.05); /* รูปภาพก็ยังคงซูมเข้าเบาๆ เพื่อมิติที่สวยงาม */
+    }
+
+    .modern-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        /* 🟢 ลด padding ลงนิดหน่อยให้พอดีกับกล่องเล็ก */
+        padding: 30px 20px 15px; 
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        background: linear-gradient(to top, var(--my-color, rgba(0,0,0,0.9)) 0%, rgba(0,0,0,0) 100%);
+    }
+    .modern-badge {
+        background-color: #d8157a; 
+        color: #ffffff;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        margin-bottom: 12px;
+    }
+.modern-title {
+        color: #ffffff; 
+        font-size: 1.4rem; 
+        font-weight: bold;
+        margin-bottom: 10px;
+        line-height: 1.4;
+        text-shadow: 1px 1px 3px rgba(27, 31, 110, 0.5);
+
+        /* 🟢 คำสั่งตัดข้อความ 1 บรรทัดแบบมาตรฐาน (ไม่ขึ้นแจ้งเตือน) 🟢 */
+        white-space: nowrap;          /* บังคับไม่ให้ข้อความตกบรรทัด */
+        overflow: hidden;             /* ซ่อนส่วนที่ยาวทะลุกรอบ */
+        text-overflow: ellipsis;      /* ใส่จุดไข่ปลา ... ตรงที่ถูกซ่อน */
+    }
+    /* 🟢 ควบคุมสีของวันที่และนาฬิกา (ปรับสีตรงนี้จุดเดียว เปลี่ยนทุกกล่อง!) 🟢 */
+    .modern-meta, .modern-meta span {
+        color: #1618a6 !important; /* เปลี่ยนรหัสสีตรงนี้ครับ (ตอนนี้เป็นสีขาว) */
+        font-size: 0.95rem;
+        display: flex;
+        gap: 20px; 
+    }
+    /* การจัดรูปแบบแถบค้นหาและตัวกรอง */
+.filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 0 auto 25px auto; /* คำสั่งนี้ช่วยให้แถบอยู่กึ่งกลางหน้าจอ */
+    max-width: 800px; /* 👈 ปรับความยาวตรงนี้ครับ! ลองเปลี่ยนเป็น 600px หรือ 700px ได้เลย */
+    background: #06032d; /* 👈 ปรับสีพื้นหลังตรงนี้ครับ */
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.search-box {
+    flex: 1;
+    min-width: 250px;
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 8px 12px;
+}
+.search-box input {
+    border: none;
+    outline: none;
+    width: 100%;
+    margin-left: 8px;
+    font-size: 1rem;
+}
+.filter-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.filter-options select {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    outline: none;
+    font-size: 1rem;
+    color: #010309;
+    cursor: pointer;
+}
+/* ========================================== */
+        /* 🔍 สไตล์แถบค้นหาและตัวกรอง (3D Premium & Glassmorphism) */
+        /* ========================================== */
+        
+        .premium-filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 35px auto;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        /* ------------------------------------- */
+        /* 1. กล่องค้นหา 3D เรืองแสง (Glassmorphism) */
+        /* ------------------------------------- */
+        .premium-search-box {
+            display: flex;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.4); /* พื้นหลังโปร่งแสงสีเข้ม */
+            border: 1px solid rgba(147, 197, 253, 0.3); /* ขอบสีฟ้าจางๆ */
+            border-radius: 50px; /* ทรงแคปซูลโค้งมน */
+            padding: 5px 25px;
+            flex: 1; /* ให้กล่องค้นหาขยายเต็มพื้นที่ที่เหลือ */
+            min-width: 280px;
+            
+            /* สร้างมิติความลึก */
+            box-shadow: 
+                0 8px 25px rgba(0, 0, 0, 0.3), 
+                inset 0 2px 5px rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* เอฟเฟกต์ตอนคลิกพิมพ์ (ลอยตัวและเรืองแสง) */
+        .premium-search-box:focus-within {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: #3b82f6;
+            transform: translateY(-3px);
+            box-shadow: 
+                0 12px 30px rgba(59, 130, 246, 0.25), 
+                0 0 15px rgba(59, 130, 246, 0.2),
+                inset 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ไอคอนแว่นขยาย */
+        .search-icon {
+            color: #94a3b8;
+            font-size: 1.15rem;
+            transition: 0.3s;
+        }
+        .premium-search-box:focus-within .search-icon {
+            color: #60a5fa; /* สว่างขึ้นตอนพิมพ์ */
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        /* ช่องพิมพ์ข้อความ */
+        .premium-input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            padding: 12px 15px;
+            width: 100%;
+            outline: none;
+        }
+        .premium-input::placeholder {
+            color: #e8ecf1;
+        }
+
+        /* ------------------------------------- */
+        /* 2. ปุ่ม Dropdown ตัวกรอง (3D Neumorphism) */
+        /* ------------------------------------- */
+        .premium-select {
+            appearance: none; /* ซ่อนลูกศรแบบเก่าที่ดูโบราณ */
+            background: linear-gradient(145deg, #ffffff, #e2e8f0);
+            color: #dcdfe4;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 14px 50px 14px 25px;
+            border-radius: 50px; /* ทรงแคปซูล */
+            border: 1px solid #203141;
+            cursor: pointer;
+            outline: none;
+            
+            /* สร้างมิติ 3D ให้นูนขึ้นมาเหมือนปุ่มจริงๆ */
+            box-shadow: 
+                6px 6px 15px rgba(0, 0, 0, 0.2), 
+                -4px -4px 10px rgba(255, 255, 255, 0.05),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.08);
+                
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            
+            /* เปลี่ยนลูกศรใหม่เป็นสีฟ้าโมเดิร์น */
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 20px center;
+            background-size: 14px;
+        }
+
+        /* เอฟเฟกต์ตอนชี้เมาส์ (ปุ่มลอยขึ้น) */
+        .premium-select:hover {
+            transform: translateY(-4px);
+            box-shadow: 
+                10px 12px 25px rgba(0, 0, 0, 0.25), 
+                inset 0 2px 5px rgba(255, 255, 255, 1);
+            border-color: #93c5fd;
+        }
+
+        /* เอฟเฟกต์ตอนกดคลิก (ปุ่มยุบลงไป) */
+        .premium-select:active {
+            transform: translateY(1px);
+            box-shadow: inset 2px 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ------------------------------------- */
+        /* สำหรับหน้าจอมือถือ */
+        /* ------------------------------------- */
+        @media (max-width: 768px) {
+            .premium-filter-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .premium-search-box, .premium-select {
+                width: 100%;
+                min-width: 100%;
+            }
+        }
+        /* 🚪 สไตล์ปุ่มออกจากระบบสุดพรีเมียม */
+        .sidebar-logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 25px;
+            color: #fca5a5; /* สีแดงพาสเทล ดูแพง ไม่ฉูดฉาดเกินไป */
+            text-decoration: none;
+            font-size: 16px;
+            background: rgba(239, 68, 68, 0.05); /* พื้นหลังแดงจางๆ แบบกระจก */
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-logout-btn:hover {
+            background: rgba(239, 68, 68, 0.15); /* เข้มขึ้นตอนเอาเมาส์ชี้ */
+            color: #ef4444; /* ตัวหนังสือแดงสดขึ้น */
+            padding-left: 30px; /* ลูกเล่นขยับขวานิดนึงตอนชี้ */
+            border-left: 4px solid #ef4444; /* มีแถบเรืองแสงด้านซ้าย */
+        }
+    </style>
+
+<style id="homepage-restyle">
+/* =========================================================
+   HOMEPAGE RESTYLE — ปรับเฉพาะรูปแบบ/การจัดวาง ไม่เปลี่ยนธีมสี
+   ========================================================= */
+html { scroll-behavior: smooth; }
+
+body {
+    background:
+      radial-gradient(circle at 15% 5%, rgba(174,16,98,.07), transparent 28%),
+      linear-gradient(180deg, #090d3b 0 100px, #f7f7fb 100px 100%);
+    color: #333;
+}
+
+/* Header */
+.header {
+    height: 88px;
+    padding: 0 28px;
+    background: rgba(10,4,55,.97);
+    box-shadow: 0 8px 28px rgba(10,4,55,.18);
+    backdrop-filter: blur(12px);
+}
+.menu-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.08);
+    transition: .25s ease;
+}
+.menu-btn:hover {
+    background: rgba(255,255,255,.17);
+    transform: translateY(-2px);
+}
+.real-logo {
+    height: 68px;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,.18));
+}
+
+/* Sidebar */
+.sidebar {
+    width: 292px;
+    left: -292px;
+    padding-top: 24px;
+    background: linear-gradient(180deg, #0d0338, #14064a);
+    box-shadow: 12px 0 35px rgba(0,0,0,.18);
+}
+.sidebar-bars {
+    margin-left: 30px;
+    margin-bottom: 22px;
+    color: #fff !important;
+}
+.sidebar a {
+    margin: 6px 14px;
+    padding: 14px 18px;
+    border-radius: 13px;
+}
+.sidebar a:hover {
+    background: #fff;
+    color: #0d0338;
+    transform: translateX(4px);
+}
+
+/* Main title */
+.system-title-container {
+    width: min(1100px, 92%);
+    margin: 0 auto;
+    padding: 54px 20px 25px;
+    text-align: center;
+}
+.title-th {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    line-height: 1.25;
+    letter-spacing: .2px;
+    color: #d6d7db;
+    text-shadow: 0 4px 18px rgba(0,0,0,.2);
+}
+.title-line {
+    width: 170px;
+    height: 4px;
+    border-radius: 99px;
+    margin: 18px auto 12px;
+    background: linear-gradient(90deg, transparent, #9f1b87, #ae1062, transparent);
+}
+.title-org {
+    color: #e8e7ec;
+    font-size: 1.05rem;
+}
+
+/* Hero slider */
+.banner-box {
+    width: min(1120px, 92%);
+    height: clamp(260px, 46vw, 500px);
+    margin: 12px auto 34px;
+    border-radius: 24px;
+    background: #0b1945;
+    box-shadow: 0 20px 50px rgba(10,4,55,.28);
+    border: 1px solid rgba(255,255,255,.16);
+}
+.banner-box::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(9,13,59,.04), rgba(9,13,59,.18));
+}
+.slide img {
+    object-fit: cover;
+}
+.prev, .next {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    top: 50%;
+    background: rgba(10,4,55,.48);
+    backdrop-filter: blur(6px);
+}
+.prev { left: 18px; }
+.next { right: 18px; }
+.dots-container { bottom: 18px; }
+.dot {
+    height: 9px;
+    width: 9px;
+    margin: 0 5px;
+}
+
+/* Intro */
+.intro-section {
+    width: min(980px, 88%);
+    margin: -2px auto 42px;
+    padding: 30px 34px;
+    border-radius: 20px;
+    background: rgba(255,255,255,.97);
+    border-top: 0;
+    border-left: 5px solid #ae1062;
+    box-shadow: 0 14px 35px rgba(20,15,116,.10);
+    position: relative;
+    overflow: hidden;
+}
+.intro-section::before {
+    content: "";
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    right: -75px;
+    top: -85px;
+    background: rgba(174,16,98,.08);
+}
+.intro-icon {
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 13px;
+    border-radius: 18px;
+    background: rgba(174,16,98,.10);
+    color: #99246c;
+    font-size: 1.65rem;
+}
+.intro-title { font-size: 1.4rem; }
+.intro-desc { max-width: 820px; }
+
+/* News heading */
+.news-wrapper {
+    width: min(980px, 88%) !important;
+    max-width: none !important;
+    margin: 0 auto 30px !important;
+    padding: 0 !important;
+}
+.news-wrapper .news-btn {
+    display: block;
+    width: 100%;
+    padding: 16px 20px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #22095c, #ae1062);
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 10px 25px rgba(34,9,92,.20);
+}
+.news-wrapper p {
+    padding-left: 8px !important;
+    margin-top: 10px !important;
+    color: #666 !important;
+}
+
+/* Project section */
+.recent-project-title {
+    width: min(1100px, 92%) !important;
+    max-width: none !important;
+    margin: 36px auto 18px !important;
+    padding: 18px 24px !important;
+    border: 0 !important;
+    border-left: 6px solid #140f74 !important;
+    border-radius: 16px !important;
+    background: linear-gradient(135deg, #ae1062, #22095c) !important;
+    box-shadow: 0 12px 28px rgba(34,9,92,.18) !important;
+    font-size: 1.35rem !important;
+}
+
+/* Search/filter */
+.premium-filter-container {
+    width: min(1100px, 92%);
+    max-width: none;
+    margin: 0 auto 28px;
+    padding: 0;
+    gap: 12px;
+}
+.premium-search-box {
+    min-height: 54px;
+    border-radius: 15px;
+    background: #06032d;
+    border: 1px solid rgba(255,255,255,.15);
+}
+.premium-select {
+    min-height: 54px;
+    border-radius: 15px;
+    padding-left: 18px !important;
+}
+
+/* Project cards: desktop 2 columns */
+.news-vertical-container {
+    width: min(1100px, 92%);
+    margin: 0 auto 70px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    align-items: stretch;
+}
+.news-card-modern {
+    width: 100%;
+    max-width: none;
+    height: 360px;
+    margin: 0;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(10,4,55,.15);
+}
+.news-card-modern:hover {
+    transform: translateY(-7px);
+    box-shadow: 0 20px 38px rgba(10,4,55,.22);
+}
+.modern-overlay {
+    padding: 72px 22px 20px;
+    background: linear-gradient(to top, var(--my-color, rgba(34,9,92,.96)) 0%, rgba(0,0,0,.10) 90%);
+}
+.modern-badge {
+    background: #d8157a;
+    box-shadow: 0 5px 12px rgba(216,21,122,.25);
+}
+.modern-title {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2; line-clamp: 2;
+    overflow: hidden;
+    font-size: 1.18rem;
+}
+.modern-meta, .modern-meta span {
+    color: #fff !important;
+    font-size: .92rem;
+}
+
+/* Mobile */
+@media (max-width: 760px) {
+    .header { height: 76px; padding: 0 16px; }
+    .real-logo { height: 58px; }
+    .system-title-container { padding-top: 34px; }
+    .title-th { font-size: 1.85rem; }
+    .title-org { font-size: .9rem; }
+    .banner-box {
+        width: 94%;
+        height: 270px;
+        border-radius: 18px;
+    }
+    .intro-section {
+        width: 92%;
+        padding: 25px 20px;
+        border-radius: 17px;
+    }
+    .recent-project-title,
+    .premium-filter-container,
+    .news-vertical-container,
+    .news-wrapper {
+        width: 92% !important;
+    }
+    .premium-filter-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .premium-search-box { width: 100%; }
+    .premium-select { width: 100%; }
+    .news-vertical-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    .news-card-modern { height: 330px; }
+}
+</style>
+
+
+<style id="premium-homepage-9-5">
+/* ===== PREMIUM HOMEPAGE 9.5 — คงสีเดิม / ปรับ UX + Layout ===== */
+:root{
+  --premium-radius:22px;
+  --premium-shadow:0 18px 50px rgba(10,4,55,.14);
+  --premium-shadow-hover:0 26px 65px rgba(10,4,55,.22);
+}
+
+/* smooth global motion */
+*, *::before, *::after { box-sizing:border-box; }
+a, button, .news-card-modern, .dot, .prev, .next, .menu-btn {
+  transition:transform .25s ease, box-shadow .25s ease, background .25s ease,
+             color .25s ease, opacity .25s ease, border-color .25s ease;
+}
+button { cursor:pointer; }
+
+/* header polish */
+.header{
+  position:sticky !important;
+  top:0;
+  z-index:1000;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.header::after{
+  content:"";
+  position:absolute;
+  left:0; right:0; bottom:-1px;
+  height:2px;
+  background:linear-gradient(90deg,transparent,#ae1062,#9a2d91,transparent);
+  opacity:.8;
+}
+.menu-btn:hover{
+  transform:translateY(-2px) scale(1.03);
+  box-shadow:0 10px 25px rgba(0,0,0,.18);
+}
+
+/* page opening / hero */
+.system-title-container{
+  position:relative;
+  padding:62px 20px 30px;
+}
+.system-title-container::before{
+  content:"";
+  position:absolute;
+  width:420px;height:420px;
+  border-radius:50%;
+  top:-250px;left:50%;
+  transform:translateX(-50%);
+  background:radial-gradient(circle,rgba(174,16,98,.10),transparent 68%);
+  pointer-events:none;
+}
+.title-th{ position:relative; font-weight:800; }
+.title-line{
+  height:5px;
+  width:190px;
+  box-shadow:0 4px 16px rgba(174,16,98,.22);
+}
+.title-org{
+  letter-spacing:.3px;
+  opacity:.92;
+}
+
+/* hero frame */
+.banner-box{
+  overflow:hidden !important;
+  isolation:isolate;
+  box-shadow:0 22px 60px rgba(10,4,55,.25);
+}
+.banner-box:hover{
+  box-shadow:0 28px 72px rgba(10,4,55,.31);
+}
+.slide{
+  transition:opacity .65s ease, transform .65s ease;
+}
+.slide img{
+  transform:scale(1.01);
+  transition:transform 1.2s ease;
+}
+.banner-box:hover .slide img{ transform:scale(1.035); }
+.prev:hover,.next:hover{
+  transform:translateY(-50%) scale(1.08);
+  background:rgba(10,4,55,.70);
+}
+.dot{
+  box-shadow:0 3px 10px rgba(0,0,0,.18);
+}
+.dot:hover{ transform:scale(1.25); }
+
+/* intro card */
+.intro-section{
+  position:relative;
+  border:1px solid rgba(20,15,116,.08);
+  border-left:5px solid #ae1062;
+  box-shadow:var(--premium-shadow);
+}
+.intro-section:hover{
+  transform:translateY(-3px);
+  box-shadow:0 22px 52px rgba(20,15,116,.14);
+}
+.intro-icon{
+  box-shadow:0 10px 25px rgba(174,16,98,.10);
+}
+
+/* section heading */
+.recent-project-title{
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+}
+.recent-project-title::after{
+  content:"";
+  width:120px;height:120px;
+  border-radius:50%;
+  position:absolute;
+  right:-38px;top:-58px;
+  background:rgba(255,255,255,.08);
+  pointer-events:none;
+}
+
+/* search/filter premium */
+.premium-filter-container{
+  align-items:stretch !important;
+}
+.premium-search-box,
+.premium-select{
+  box-shadow:0 8px 22px rgba(10,4,55,.10);
+}
+.premium-search-box:focus-within{
+  transform:translateY(-2px);
+  box-shadow:0 13px 30px rgba(10,4,55,.17);
+}
+.premium-select:hover{
+  transform:translateY(-2px);
+}
+
+/* project cards */
+.news-vertical-container{
+  perspective:1200px;
+}
+.news-card-modern{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.15);
+  box-shadow:var(--premium-shadow);
+  transform:translateZ(0);
+}
+.news-card-modern::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:2;
+  pointer-events:none;
+  background:linear-gradient(110deg,transparent 0%,rgba(255,255,255,.10) 45%,transparent 60%);
+  transform:translateX(-130%);
+  transition:transform .75s ease;
+}
+.news-card-modern:hover::before{ transform:translateX(130%); }
+.news-card-modern:hover{
+  transform:translateY(-9px) scale(1.012);
+  box-shadow:var(--premium-shadow-hover);
+}
+.news-card-modern .modern-overlay{
+  z-index:3;
+}
+.modern-title{
+  text-shadow:0 2px 10px rgba(0,0,0,.25);
+}
+.modern-badge{
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+.news-card-modern:hover .modern-badge{
+  transform:translateY(-2px);
+  box-shadow:0 8px 18px rgba(216,21,122,.32);
+}
+
+/* give cards an elegant bottom accent */
+.news-card-modern::after{
+  content:"";
+  position:absolute;
+  left:18px; right:18px; bottom:0;
+  height:3px;
+  border-radius:9px 9px 0 0;
+  background:linear-gradient(90deg,#ae1062,#9a2d91,#140f74);
+  opacity:.85;
+  z-index:4;
+}
+
+/* footer breathing room */
+.news-vertical-container{ padding-bottom:20px; }
+
+/* reduced motion accessibility */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    scroll-behavior:auto !important;
+    transition:none !important;
+    animation:none !important;
+  }
+}
+
+/* mobile refinements */
+@media(max-width:760px){
+  .system-title-container{padding:42px 16px 22px;}
+  .banner-box{
+    height:260px;
+    box-shadow:0 15px 38px rgba(10,4,55,.22);
+  }
+  .intro-section{margin-bottom:32px;}
+  .recent-project-title{
+    padding:16px 18px !important;
+    font-size:1.12rem !important;
+  }
+  .news-card-modern{
+    height:320px;
+  }
+}
+</style>
+
+
+<style id="restore-original-background">
+html, body {
+    background: #090d3b !important;
+}
+body {
+    background-image: none !important;
+}
+</style>
+
+<style id="image-focus-only">
+/* ปรับเฉพาะกรอบรูปภาพ/Slider — ส่วนอื่นคงเดิม */
+.banner-box{
+    position:relative;
+    border-radius:24px !important;
+    overflow:hidden !important;
+    isolation:isolate;
+    box-shadow:0 18px 42px rgba(0,0,0,.28) !important;
+    border:1px solid rgba(255,255,255,.18) !important;
+}
+.banner-box::before{
+    content:"";
+    position:absolute;
+    inset:10px;
+    z-index:5;
+    pointer-events:none;
+    border:1px solid rgba(255,255,255,.22);
+    border-radius:18px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+}
+.banner-box::after{
+    content:"";
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:38%;
+    z-index:4;
+    pointer-events:none;
+    background:linear-gradient(to top,rgba(9,13,59,.38),transparent);
+}
+.slide img{
+    width:100% !important;
+    height:100% !important;
+    object-fit:cover !important;
+    transition:transform .8s ease, filter .8s ease !important;
+}
+.banner-box:hover .slide img{
+    transform:scale(1.025);
+    filter:saturate(1.04) contrast(1.02);
+}
+.prev,.next{
+    z-index:8 !important;
+    width:52px !important;
+    height:52px !important;
+    border:1px solid rgba(255,255,255,.24) !important;
+    box-shadow:0 8px 22px rgba(0,0,0,.25) !important;
+}
+.dots-container{
+    z-index:9 !important;
+    padding:7px 12px;
+    border-radius:99px;
+    background:rgba(9,13,59,.34);
+    backdrop-filter:blur(7px);
+}
+.dot{
+    box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+@media(max-width:760px){
+    .banner-box{border-radius:18px !important;}
+    .banner-box::before{inset:7px;border-radius:14px;}
+    .prev,.next{width:44px !important;height:44px !important;}
+}
+</style>
+</head>
+<body>
+
+  <div class="sidebar" id="mySidebar">
+        <!-- เติม onclick เข้าไปแบบบรรทัดนี้เลยครับ -->
+        <i class="fa-solid fa-bars sidebar-bars" onclick="toggleMenu()"></i>
+        
+        <a href="naruk.html"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+        <a href="training.html"><i class="fa-solid fa-book"></i> รายละเอียดการอบรม</a>
+        <li class="active"><a href="manual.html"><i class="fa-solid fa-file-lines"></i> ขออนุมัติการอบรม</a></li>
+        <a href="contact.html"><i class="fa-solid fa-phone"></i> ช่องทางการติดต่อ</a>
+        <!-- ปุ่มออกจากระบบ (ดีไซน์พรีเมียม) -->
+    <a href="#" onclick="localStorage.removeItem('trainingLoggedIn'); window.location.href='login.html'; return false;" class="sidebar-logout-btn">
+        <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
+    </a>
+    </div>
+    <!-- แถบด้านบนที่มีโลโก้ -->
+    <header class="header">
+        <!-- ย้ายปุ่ม 3 ขีดเข้ามาอยู่ใน Header ให้ถูกต้อง -->
+        <button class="menu-btn" onclick="toggleMenu()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <img src="S__32161803.jpg" alt="โลโก้ อบจ.เชียงใหม่" class="real-logo">
+    </header>
+
+    <!-- เนื้อหาหลัก (ยังอยู่ครบ 100%) -->
+   <!-- 1. ส่วน Title (เพิ่มใหม่เหนือ Slider) -->
+        <div class="system-title-container">
+            <div class="title-en"></div>
+            <div class="title-th">ฐานข้อมูลการฝึกอบรมบุคลากร</div>
+            <div class="title-line"></div>
+            <div class="title-org">องค์การบริหารส่วนจังหวัดเชียงใหม่</div>
+        </div>
+      <!-- ระบบ Image Slider (รูปภาพตรงกลาง) -->
+        <div class="banner-box" id="mainSlider">
+            
+            <!-- รูปที่ 1 -->
+            <div class="slide active">
+                <img src="obj.jpg" alt="รูปอาคารองค์การบริหารส่วนจังหวัดเชียงใหม่">
+            </div>
+            
+            <!-- รูปที่ 2 -->
+            <div class="slide">
+                <img src="pmao.jpg" alt="รูปกิจกรรมขององค์การบริหารส่วนจังหวัดเชียงใหม่">
+            </div>
+            
+            <!-- รูปที่ 3 -->
+            <div class="slide">
+                <img src="noxx.jpg" alt="รูปโครงการหรือการทำงานขององค์การบริหารส่วนจังหวัดเชียงใหม่">
+            </div>
+            
+            <!-- รูปที่ 4 -->
+            <div class="slide">
+                <img src="apad.jpg" alt="รูปประชาสัมพันธ์ขององค์การบริหารส่วนจังหวัดเชียงใหม่">
+            </div>
+
+            <!-- ปุ่มลูกศร -->
+            <a class="prev" onclick="changeSlide(-1)">&#10094;</a>
+            <a class="next" onclick="changeSlide(1)">&#10095;</a>
+
+            <!-- จุดไข่ปลา -->
+            <div class="dots-container">
+                <span class="dot active" onclick="currentSlide(1)"></span>
+                <span class="dot" onclick="currentSlide(2)"></span>
+                <span class="dot" onclick="currentSlide(3)"></span>
+                <span class="dot" onclick="currentSlide(4)"></span>
+            </div>
+<!-- 2. ส่วน Intro แนะนำระบบ (เพิ่มใหม่ใต้ Slider) -->
+        <div class="intro-section fade-on-scroll">
+            <i class="fa-solid fa-users-gear intro-icon"></i>
+            <div class="intro-title">ระบบบริหารจัดการข้อมูลบุคลากรและการฝึกอบรม</div>
+            <div class="intro-desc">
+                ระบบสำหรับจัดเก็บและบริหารจัดการข้อมูลบุคลากร ประวัติการฝึกอบรม และข้อมูลที่เกี่ยวข้อง
+                เพื่อสนับสนุนการบริหารจัดการและการพัฒนาบุคลากร ขององค์การบริหารส่วนจังหวัดเชียงใหม่
+            </div>
+        </div>
+        </div>
+       <!-- 4. ส่วนข่าวประชาสัมพันธ์ (ปรับให้อยู่กึ่งกลาง) -->
+        <div class="news-wrapper fade-on-scroll">
+            <a href="#" class="news-btn"><i class="fa-solid fa-circle" style="font-size: 8px; vertical-align: middle;"></i> ข่าวประชาสัมพันธ์ล่าสุด</a>
+            <p style="color: #555; margin-top: 8px; padding-left: 5px;">ข่าวสารและการดำเนินงานขององค์การบริหารส่วนจังหวัดเชียงใหม่</p>
+        </div>
+        <!-- หัวข้อคั่นระหว่างรูปภาพ -->
+
+        <div class="recent-project-title">โครงการฝึกอบรมปีงบประมาณ 2569</div>
+        <!-- โค้ดปุ่มกด (วางต่อจากหัวข้อตรงนี้เลย) -->
+         <!-- ================= ส่วนระบบค้นหาและตัวกรอง ================= -->
+<!-- ========================================== -->
+        <!-- 🔍 แถบค้นหาและตัวกรอง (ดีไซน์ 3D พรีเมียม + ระบบเดิมครบถ้วน) -->
+        <!-- ========================================== -->
+        <div class="premium-filter-container">
+            
+            <!-- กล่องค้นหา 3D (คง id และ onkeyup ไว้เหมือนเดิมเป๊ะ) -->
+            <div class="premium-search-box">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="projectSearch" placeholder="ค้นหาโครงการฝึกอบรม..." onkeyup="filterProjects()" class="premium-input">
+            </div>
+
+            <!-- ตัวกรอง ปีงบประมาณ (คง id และ onchange ไว้เหมือนเดิม) -->
+            <select id="filterYear" onchange="filterProjects()" class="premium-select">
+                <option value="all">ปีงบประมาณ (ทั้งหมด)</option>
+                <option value="2569">2569</option>
+                <option value="2568">2568</option>
+                <option value="2567">2567</option>
+            </select>
+
+            <!-- ตัวกรอง ประเภท (คง id และ onchange ไว้เหมือนเดิม) -->
+            <select id="filterType" onchange="filterProjects()" class="premium-select">
+                <option value="all">ประเภท (ทั้งหมด)</option>
+                <option value="การฝึกอบรม">การฝึกอบรม</option>
+                <option value="การประชุม">การประชุม</option>
+                <option value="การสัมมนา">การสัมมนา</option>
+                <option value="การศึกษาดูงาน">การศึกษาดูงาน</option>
+            </select>
+
+        </div>
+<!-- ข้อความแจ้งเตือนเมื่อไม่พบข้อมูล (ซ่อนไว้เป็นค่าเริ่มต้น) -->
+<div id="noResultMessage" style="display: none; text-align: center; padding: 20px; color: #666; font-size: 1.1rem;">
+    ไม่พบโครงการที่ค้นหา
+</div>
+<!-- ================= จบส่วนระบบค้นหาและตัวกรอง ================= -->
+       <!-- ================= ส่วนที่ 2 : โครงสร้างกล่อง (เอาไอคอนตาออกแล้ว) ================= -->
+<div class="news-vertical-container">
+
+    <!-- 🟢 กล่องที่ 1 🟢 -->
+    <a href="https://heyzine.com/flip-book/0b0cc0fad6.html" class="news-card-modern" target="_blank">
+        <img src="as2.jpg" alt="รูปปก">
+        <!-- พิมพ์แค่ --my-color: ตามด้วยสีที่ต้องการ แค่นี้เลยครับ! -->
+        <div class="modern-overlay" style="--my-color: rgba(169, 77, 169, 0.9);">
+            <span class="modern-badge">โครงการฝึกอบรม</span>
+            <div class="modern-title">การจัดการความรู้(Knowledge Management: KM)</div>
+            <div class="modern-meta">
+                <span>🕒 28 สิงหาคม 2569</span>
+                <!-- ลบไอคอนตาออกแล้ว -->
+            </div>
+        </div>
+    </a>
+
+    <!-- 🟢 กล่องที่ 2 🟢 -->
+    <a href="https://heyzine.com/flip-book/ffabdc6409.html" class="news-card-modern" target="_blank">
+        <img src="bs1.jpg" alt="รูปปก">
+        <div class="modern-overlay" style="--my-color: rgba(169, 77, 169, 0.9);">
+            <span class="modern-badge">โครงการฝึกอบรม</span>
+            <div class="modern-title">การจัดทำแผนพัฒนาการศึกษาและการบริหารงบประมาณสถานศึกษาอย่างเป็นระบบ</div>
+            <div class="modern-meta">
+                <span>🕒 6-8 มิถุนายน 2569</span>
+            </div>
+        </div>
+    </a>
+
+    <!-- 🟢 กล่องที่ 3 🟢 -->
+    <a href="https://heyzine.com/flip-book/c6a59cf1e2.html" class="news-card-modern" target="_blank">
+        <img src="bs2.jpg" alt="รูปปก">
+        <div class="modern-overlay" style="--my-color: rgba(169, 77, 169, 0.9);">
+            <span class="modern-badge">โครงการฝึกอบรม</span>
+            <div class="modern-title">การอบรม D-LEP พัฒนาทักษะการใช้งานระบบดิจิทัล</div>
+            <div class="modern-meta">
+                <span>🕒 24-26 เมษายน 2569</span>
+            </div>
+        </div>
+    </a>
+<!-- 🟢 กล่องที่ 4 🟢 -->
+    <a href="https://heyzine.com/flip-book/6627c5ece8.html" class="news-card-modern" target="_blank">
+        <img src="bs3.jpg" alt="รูปปก">
+        <div class="modern-overlay" style="--my-color: rgba(169, 77, 169, 0.9);">
+            <span class="modern-badge">โครงการฝึกอบรม</span>
+            <div class="modern-title">หลักสูตร "ความรู้เบื้องต้นเกี่ยวกับหลักเกณฑ์และเงื่อนไขการลงโทษทางวินัย</div>
+            <div class="modern-meta">
+                <span>🕒 5 กุมภาพันธ์ 2569</span>
+            </div>
+        </div>
+    </a>
+
+    <!-- 🟢 กล่องที่ 5 🟢 -->
+    <a href="https://heyzine.com/flip-book/763a435fca.html" class="news-card-modern" target="_blank">
+        <img src="bs4.jpg" alt="รูปปก">
+        <div class="modern-overlay" style="--my-color: rgba(169, 77, 169, 0.9);">
+            <span class="modern-badge">โครงการฝึกอบรม</span>
+            <div class="modern-title">อบรมเชิงปฏิบัติการ หลักสูตร "เพิ่มประสิทธิภาพการปฏิบัติงานของโรงเรียน</div>
+            <div class="modern-meta">
+                <span>🕒 15 มกราคม 2569</span>
+            </div>
+        </div>
+    </a>
+</div>
+       <!-- background remains controlled by the homepage restyle -->
+<button id="premiumBackTop" aria-label="กลับขึ้นด้านบน" title="กลับขึ้นด้านบน">↑</button>
+<style>
+#premiumBackTop{
+  position:fixed;
+  right:22px;
+  bottom:22px;
+  z-index:1200;
+  width:48px;height:48px;
+  border:0;
+  border-radius:50%;
+  background:#140f74;
+  color:#fff;
+  font-size:22px;
+  box-shadow:0 12px 28px rgba(10,4,55,.22);
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(12px);
+}
+#premiumBackTop.show{
+  opacity:1;
+  visibility:visible;
+  transform:translateY(0);
+}
+#premiumBackTop:hover{transform:translateY(-3px) scale(1.05);}
+@media(max-width:760px){#premiumBackTop{right:15px;bottom:15px;width:44px;height:44px;}}
+</style>
+<script>
+(function(){
+  var b=document.getElementById('premiumBackTop');
+  if(!b) return;
+  window.addEventListener('scroll',function(){
+    b.classList.toggle('show',window.scrollY>500);
+  },{passive:true});
+  b.addEventListener('click',function(){
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+})();
+</script>
+
+</body>
+
+ 
+  
+</div>
+        <script>
+            function toggleDescription(btn) {
+                btn.classList.toggle("active");
+                var content = btn.nextElementSibling;
+                if (content.style.maxHeight) {
+                    // ถ้าเปิดอยู่ ให้ปิด (หดกลับ)
+                    content.style.maxHeight = null;
+                } else {
+                    // ถ้าปิดอยู่ ให้เปิด (เลื่อนขยายตามความยาวของข้อความ)
+                    content.style.maxHeight = content.scrollHeight + "px";
+                }
+            }
+        </script>
+    <!-- สคริปต์สำหรับเปิด-ปิดเมนู (ลบอันเก่าที่ซ้ำซ้อนทิ้งให้แล้วครับ) -->
+    <script>
+        function toggleMenu() {
+            var sidebar = document.getElementById("mySidebar");
+            sidebar.classList.toggle("active");
+        }
+        /* --- JS ระบบเปิด/ปิดเมนูเดิม (คงไว้ห้ามลบ) --- */
+        function toggleMenu() {
+            var sidebar = document.getElementById("mySidebar");
+            sidebar.classList.toggle("active");
+        }
+
+        /* --- JS ระบบ Image Slider เพิ่มใหม่ --- */
+        let slideIndex = 1;
+        let slideTimer;
+
+        // เริ่มต้นการทำงาน Slider
+        showSlides(slideIndex);
+        startAutoSlide();
+
+        // ฟังก์ชันเริ่มจับเวลา 5 วินาที
+        function startAutoSlide() {
+            slideTimer = setInterval(function() {
+                changeSlide(1);
+            }, 5000); 
+        }
+
+        // ฟังก์ชันรีเซ็ตเวลาเมื่อผู้ใช้กดลูกศรหรือจุดเอง
+        function resetTimer() {
+            clearInterval(slideTimer);
+            startAutoSlide();
+        }
+
+        // ฟังก์ชันเลื่อนรูปซ้าย-ขวา
+        function changeSlide(n) {
+            showSlides(slideIndex += n);
+            resetTimer();
+        }
+
+        // ฟังก์ชันเมื่อกดที่จุดไข่ปลา
+        function currentSlide(n) {
+            showSlides(slideIndex = n);
+            resetTimer();
+        }
+
+        // ฟังก์ชันควบคุมการเปลี่ยนภาพและ Fade Effect
+        function showSlides(n) {
+            let i;
+            let slides = document.getElementsByClassName("slide");
+            let dots = document.getElementsByClassName("dot");
+            
+            if (n > slides.length) {slideIndex = 1}    
+            if (n < 1) {slideIndex = slides.length}
+            
+            for (i = 0; i < slides.length; i++) {
+                slides[i].classList.remove("active");  
+            }
+            for (i = 0; i < dots.length; i++) {
+                dots[i].classList.remove("active");
+            }
+            
+            slides[slideIndex-1].classList.add("active");  
+            dots[slideIndex-1].classList.add("active");
+        }
+        
+
+        /* === ตอนเปิดเว็บมาปุ๊บ สั่งให้กล่องหดตัวรอไว้เลยทันที === */
+        var boxesToHide = document.getElementsByClassName("activity-banner-box");
+        
+        if (boxesToHide.length > 0) {
+            boxesToHide[0].style.display = ""; // ล้างค่าแบบเก่าทิ้งป้องกันการบั๊ก
+            boxesToHide[0].classList.add("hidden-smooth"); // สั่งหดกล่อง 1
+        }
+        if (boxesToHide.length > 1) {
+            boxesToHide[1].style.display = ""; 
+            boxesToHide[1].classList.add("hidden-smooth"); // สั่งหดกล่อง 2
+        }
+        /* --- ฟังก์ชันแยกต่างหาก สำหรับแถบรายละเอียดโครงการ NEW e-LAAS --- */
+        function toggleDescription(btn) {
+            var content = btn.nextElementSibling;
+            var icon = btn.querySelector('.accordion-icon');
+            
+            if (content.style.maxHeight && content.style.maxHeight !== "0px") {
+                content.style.maxHeight = "0px"; 
+                icon.style.transform = "rotate(0deg)"; 
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px"; 
+                icon.style.transform = "rotate(180deg)"; 
+            }
+        }
+        /* ==============================================================
+           คำสั่งควบคุมสำหรับโครงการใหม่ (กล่องล่างสุด)
+           ============================================================== */
+        
+        /* 1. ฟังก์ชันปุ่มกด ซ่อน/แสดง รูปภาพ */
+        function toggleGallery3() {
+            var btn = document.getElementById("toggleBtn3");
+            var boxes = document.getElementsByClassName("activity-banner-box");
+            
+            // ล็อคเป้ากล่องที่ 3 ในระบบ (index = 2)
+            if (boxes.length <= 2) return; 
+            var targetBox = boxes[2]; 
+            
+            if (targetBox.classList.contains("hidden-smooth")) {
+                targetBox.classList.remove("hidden-smooth"); 
+                btn.innerHTML = "ซ่อนรูปภาพโครงการ &#9650;";
+            } else {
+                targetBox.classList.add("hidden-smooth");  
+                btn.innerHTML = "แสดงรูปภาพโครงการ &#9660;";
+            }
+        }
+
+        /* 2. คำสั่งให้กล่องใหม่ ซ่อนตัวทันทีตอนเปิดหน้าเว็บ */
+        var boxesToHide = document.getElementsByClassName("activity-banner-box");
+        if (boxesToHide.length > 2) {
+            boxesToHide[2].style.display = ""; 
+            boxesToHide[2].classList.add("hidden-smooth");
+        }
+
+        /* 3. ฟังก์ชันระบบเลื่อนรูป (Slider) สำหรับรูปในกล่องใหม่ */
+        var slideIndex4 = 1;
+        showAct4Slides(slideIndex4);
+
+        function changeAct4Slide(n) { showAct4Slides(slideIndex4 += n); }
+        function currentAct4Slide(n) { showAct4Slides(slideIndex4 = n); }
+
+        function showAct4Slides(n) {
+            var i;
+            var slides = document.getElementsByClassName("act4-slide");
+            var dots = document.getElementsByClassName("act4-dot");
+            if (slides.length === 0) return;
+            
+            if (n > slides.length) {slideIndex4 = 1}
+            if (n < 1) {slideIndex4 = slides.length}
+            
+            for (i = 0; i < slides.length; i++) {
+                slides[i].style.display = "none";
+            }
+            for (i = 0; i < dots.length; i++) {
+                dots[i].className = dots[i].className.replace(" active", "");
+            }
+            
+            slides[slideIndex4-1].style.display = "block";
+            dots[slideIndex4-1].className += " active";
+        }
+    </script>
+<script>
+function filterProjects() {
+    let searchText = document.getElementById('projectSearch').value.toLowerCase().trim();
+    let filterYear = document.getElementById('filterYear').value;
+    let filterType = document.getElementById('filterType').value;
+    
+    // อ้างอิงคลาสของการ์ดโครงการ (หากของคุณชื่ออื่น ให้เปลี่ยนตรง .news-card-modern)
+    let cards = document.querySelectorAll('.news-card-modern'); 
+    let foundCount = 0;
+    let noResultMsg = document.getElementById('noResultMessage');
+
+    cards.forEach(card => {
+        let cardText = card.innerText.toLowerCase(); // ดึงข้อความทั้งหมดในการ์ดมาตรวจสอบ
+        
+        let matchSearch = cardText.includes(searchText);
+        let matchYear = filterYear === 'all' || cardText.includes(filterYear);
+        let matchType = filterType === 'all' || cardText.includes(filterType);
+
+        if (matchSearch && matchYear && matchType) {
+            card.style.display = ''; // แสดงการ์ด
+            foundCount++;
+        } else {
+            card.style.display = 'none'; // ซ่อนการ์ด
+        }
+    });
+
+    // แสดงข้อความ "ไม่พบโครงการ" หากไม่มีการ์ดไหนตรงเงื่อนไขเลย
+    if (foundCount === 0) {
+        noResultMsg.style.display = 'block';
+    } else {
+        noResultMsg.style.display = 'none';
+    }
+}
+    </script>
+</body>
+</html>

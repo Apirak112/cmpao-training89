@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <script>
+    const loggedIn = localStorage.getItem('trainingLoggedIn');
+
+    if (loggedIn !== 'true') {
+        window.location.replace('index.html');
+    }
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ช่องทางการติดต่อ - องค์การบริหารส่วนจังหวัดเชียงใหม่</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+        if (!localStorage.getItem('trainingLoggedIn')) {
+            // เปลี่ยนจาก .replace(...) มาเป็น .href = ... 
+            window.location.href = 'login.html';
+        }
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #090d3b;
+            color: white;
+        }
+
+        /* Header */
+        .gov-header {
+            height: 100px;
+            background: #0a0437;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 15px 60px;
+        }
+
+        .menu-toggle {
+            position: absolute;
+            left: 25px;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        .header-text {
+            text-align: center;
+        }
+
+        .header-text h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+
+        .header-text h2 {
+            margin: 3px 0 0;
+            font-size: 1rem;
+            font-weight: 300;
+            color: #d8d8e5;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -270px;
+            width: 270px;
+            height: 100vh;
+            background: #0d0338;
+            padding-top: 80px;
+            box-shadow: 2px 0 12px rgba(0,0,0,.25);
+            transition: .3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-close {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 17px 30px;
+            color: #efeff3;
+            text-decoration: none;
+            font-size: 1.08rem;
+            border-bottom: 1px solid #16033e;
+            transition: .2s;
+        }
+
+        .sidebar a i {
+            width: 25px;
+            text-align: center;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.current {
+            background: white;
+            color: #0b1945;
+        }
+
+        /* Content */
+        .content-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 55px 25px 70px;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 500;
+            margin: 0 0 8px;
+        }
+
+        .title-line {
+            width: 110px;
+            height: 3px;
+            margin: 15px auto 10px;
+            background: linear-gradient(90deg, transparent, #a41b74, transparent);
+        }
+
+        .page-subtitle {
+            color: #c7c8d9;
+            margin: 0 0 40px;
+            font-size: 1rem;
+            font-weight: 300;
+        }
+
+       .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* บังคับให้แบ่ง 3 ช่องเท่าๆ กัน */
+            gap: 25px; /* ระยะห่างระหว่างกล่อง */
+            max-width: 1100px; /* ขยายความกว้างรวม เพื่อให้ 3 กล่องไม่อึดอัด */
+            margin: 0 auto;
+        }
+
+        /* เมื่อหน้าจอเล็กลง (เช่น แท็บเล็ต) ให้เหลือ 2 ช่อง */
+        @media (max-width: 950px) {
+            .contact-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* เมื่อเป็นหน้าจอมือถือ ให้เรียงแนวตั้งทีละกล่อง */
+        @media (max-width: 650px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        /* 1. แก้ไขกล่องหลัก ให้เรียงจากบนลงล่าง ไม่ใช่ตรงกลาง */
+        .contact-card {
+            background: white;
+            color: #333;
+            border-radius: 15px;
+            padding: 30px 25px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* 🌟 เปลี่ยนจาก center เป็น flex-start */
+            min-height: 240px; /* 🌟 เพิ่มความสูงเผื่อไว้สำหรับข้อความยาวๆ */
+            box-shadow: 0 8px 25px rgba(0,0,0,.15);
+            transition: .3s ease;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 14px 30px rgba(0,0,0,.25);
+        }
+
+        /* 2. ล็อคความสูงของหัวข้อ เผื่อไว้ 2 บรรทัด จะได้เท่ากันทุกกล่อง */
+        .contact-card h3 {
+            margin: 0 0 8px;
+            color: #0b1945;
+            font-size: 1.05rem; /* 🌟 ลดขนาดฟอนต์ลงนิดนึงจะได้ไม่ตัดคำน่าเกลียด */
+            font-weight: 500;
+            text-align: center;
+            line-height: 1.4;
+            min-height: 45px; /* 🌟 ล็อคความสูงไว้ให้เท่ากันหมด */
+            display: flex;
+            align-items: center;
+        }
+
+        .contact-card p {
+            margin: 0 0 18px;
+            color: #666;
+            font-size: .85rem;
+            text-align: center;
+        }
+
+        /* 3. ดันปุ่มให้อยู่ชิดขอบล่างสุดเสมอ */
+        .open-btn {
+            padding: 9px 22px;
+            border-radius: 25px;
+            color: white;
+            background: #0b1945;
+            font-size: .9rem;
+            margin-top: auto; /* 🌟 คำสั่งนี้จะดันปุ่มให้เรียงอยู่ฐานล่างเท่ากันทุกกล่อง */
+        }
+
+        .facebook .open-btn {
+            background: #1877f2;
+        }
+
+        .office-info {
+            margin-top: 35px;
+            padding: 25px;
+            border-radius: 15px;
+            background: rgba(255,255,255,.08);
+            border: 1px solid rgba(255,255,255,.12);
+        }
+
+        .office-info h3 {
+            margin: 0 0 12px;
+            font-weight: 500;
+        }
+
+        .office-info p {
+            margin: 7px 0;
+            color: #d7d8e5;
+            font-size: .95rem;
+        }
+
+        @media (max-width: 650px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-title {
+                font-size: 1.7rem;
+            }
+
+            .gov-header {
+                padding: 15px 50px;
+            }
+
+            .header-text h1 {
+                font-size: 1rem;
+            }
+        }
+        /* 🚪 สไตล์ปุ่มออกจากระบบสุดพรีเมียม */
+        .sidebar-logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 25px;
+            color: #fca5a5; /* สีแดงพาสเทล ดูแพง ไม่ฉูดฉาดเกินไป */
+            text-decoration: none;
+            font-size: 16px;
+            background: rgba(239, 68, 68, 0.05); /* พื้นหลังแดงจางๆ แบบกระจก */
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-logout-btn:hover {
+            background: rgba(239, 68, 68, 0.15); /* เข้มขึ้นตอนเอาเมาส์ชี้ */
+            color: #ef4444; /* ตัวหนังสือแดงสดขึ้น */
+            padding-left: 30px; /* ลูกเล่นขยับขวานิดนึงตอนชี้ */
+            border-left: 4px solid #ef4444; /* มีแถบเรืองแสงด้านซ้าย */
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- เมนูด้านข้าง -->
+    <div class="sidebar" id="mySidebar">
+        <div class="sidebar-close" onclick="toggleMenu()">
+            <i class="fa-solid fa-xmark"></i>
+        </div>
+
+        <a href="naruk.html">
+            <i class="fa-solid fa-house"></i>
+            <span>หน้าหลัก</span>
+        </a>
+
+        <a href="training.html">
+            <i class="fa-solid fa-book"></i>
+            <span>รายละเอียดการอบรม</span>
+        </a>
+
+        <li class="active"><a href="manual.html"><i class="fa-solid fa-file-lines"></i> ขออนุมัติการอบรม</a></li>
+        
+        <a href="contact.html" class="current">
+            <i class="fa-solid fa-phone"></i>
+            <span>ช่องทางการติดต่อ</span>
+        </a>
+        <!-- ปุ่มออกจากระบบ (ดีไซน์พรีเมียม) -->
+    <a href="#" onclick="localStorage.removeItem('trainingLoggedIn'); window.location.href='login.html'; return false;" class="sidebar-logout-btn">
+        <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
+    </a>
+    </div>
+
+    <!-- Header -->
+    <header class="gov-header">
+        <div class="menu-toggle" onclick="toggleMenu()">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+
+        <div class="header-text">
+            <h1>องค์การบริหารส่วนจังหวัดเชียงใหม่</h1>
+            <h2>ช่องทางการติดต่อ</h2>
+        </div>
+    </header>
+
+    <!-- เนื้อหา -->
+    <main class="content-container">
+
+        <h1 class="page-title">ช่องทางการติดต่อ</h1>
+        <div class="title-line"></div>
+        <p class="page-subtitle">
+            องค์การบริหารส่วนจังหวัดเชียงใหม่
+        </p>
+
+       <!-- กรอบคลุมกล่องติดต่อทั้ง 3 กล่อง -->
+        <div class="contact-grid">
+
+            <!-- กล่องที่ 1: เว็บไซต์ -->
+            <a class="contact-card website"
+               href="https://www.chiangmaipao.go.th/"
+               target="_blank"
+               rel="noopener noreferrer">
+                <div class="contact-icon">
+                    <i class="fa-solid fa-globe"></i>
+                </div>
+                <h3>เว็บไซต์หลัก อบจ.เชียงใหม่</h3>
+                <p>www.chiangmaipao.go.th</p>
+                <span class="open-btn">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    เข้าสู่เว็บไซต์
+                </span>
+            </a>
+
+            <!-- กล่องที่ 2: Facebook หลัก -->
+            <a class="contact-card facebook"
+               href="https://www.facebook.com/cmpao888"
+               target="_blank"
+               rel="noopener noreferrer">
+                <div class="contact-icon">
+                    <i class="fa-brands fa-facebook-f"></i>
+                </div>
+                <h3>Facebook อบจ.เชียงใหม่</h3>
+                <p>องค์การบริหารส่วนจังหวัดเชียงใหม่</p>
+                <span class="open-btn">
+                    <i class="fa-brands fa-facebook-f"></i>
+                    เข้าสู่ Facebook
+                </span>
+            </a>
+
+            <!-- กล่องที่ 3: Facebook กองการเจ้าหน้าที่ (เพิ่มใหม่) -->
+            <a class="contact-card facebook"
+               href="https://www.facebook.com/share/19fv3MZfMS/?mibextid=wwXIfr"
+               target="_blank"
+               rel="noopener noreferrer">
+                <div class="contact-icon">
+                    <i class="fa-brands fa-facebook-f"></i>
+                </div>
+                <h3>Facebook กองการเจ้าหน้าที่</h3> 
+                <p>องค์การบริหารส่วนจังหวัดเชียงใหม่</p>
+                <span class="open-btn">
+                    <i class="fa-brands fa-facebook-f"></i>
+                    เข้าสู่ Facebook
+                </span>
+            </a>
+
+        </div> <!-- ปิดกรอบ contact-grid (ตอนนี้ครอบทั้ง 3 กล่องแล้ว) -->
+
+            </a>
+        <!-- ข้อมูลสำนักงาน -->
+        <div class="office-info">
+            <h3><i class="fa-solid fa-building"></i> ข้อมูลสำนักงาน</h3>
+            <p>888 ถนนโชตนา ตำบลช้างเผือก อำเภอเมืองเชียงใหม่ จังหวัดเชียงใหม่ 50300</p>
+            <p><i class="fa-solid fa-phone"></i> โทรศัพท์ 053-998-333</p>
+            <p><i class="fa-solid fa-fax"></i> โทรสาร 053-998-334</p>
+            <p><i class="fa-solid fa-envelope"></i> chiangmaipao@chiangmaipao.go.th</p>
+        </div>
+
+    </main>
+
+    <script>
+        function toggleMenu() {
+            var sidebar = document.getElementById("mySidebar");
+            sidebar.classList.toggle("active");
+        }
+    </script>
+
+</body>
+</html>

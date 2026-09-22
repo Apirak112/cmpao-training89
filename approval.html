@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ขั้นตอนการขออนุมัติ - องค์การบริหารส่วนจังหวัดเชียงใหม่</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+*{box-sizing:border-box;font-family:'Prompt',sans-serif}
+body{margin:0;background:#090d3b;color:#fff}
+.gov-header{background:#0a0437;color:#fff;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;min-height:92px}
+.header-text{text-align:center}
+.header-text h1{margin:0;font-size:1.2rem;font-weight:500}
+.header-text h2{margin:2px 0 0;font-size:1rem;font-weight:300;color:#e0e0e0}
+.menu-toggle{position:absolute;left:20px;color:#fff;font-size:1.8rem;cursor:pointer;z-index:1001}
+.sidebar{position:fixed;top:0;left:-250px;width:250px;height:100vh;background:#0d0338;padding-top:80px;box-shadow:2px 0 10px rgba(0,0,0,.2);transition:.3s;z-index:1000}
+.sidebar.active{left:0}
+.sidebar a{display:block;padding:15px 30px;color:#efeff3;text-decoration:none;font-size:1.05rem;border-bottom:1px solid #16033e}
+.sidebar a:hover,.sidebar a.current{background:#edecf3;color:#0b1945}
+
+.container{max-width:1280px;margin:0 auto;padding:42px 24px 70px}
+.title{text-align:center;margin-bottom:35px}
+.title h1{font-size:2rem;margin:0;font-weight:500}
+.line{width:110px;height:3px;margin:14px auto;background:linear-gradient(90deg,transparent,#a41b74,transparent)}
+.title p{color:#c8cadb;margin:0;font-weight:300}
+
+.flow{display:grid;grid-template-columns:1fr 60px 1fr 60px 1fr 60px 1fr;align-items:center}
+.step{background:#fff;color:#17234e;border:2px solid #c9c9c9;min-height:190px;padding:24px 20px;border-radius:5px;display:flex;flex-direction:column;justify-content:center;box-shadow:0 5px 15px rgba(0,0,0,.12)}
+.step .num{font-size:1.2rem;font-weight:600;color:#a41b74;margin-bottom:8px}
+.step h3{font-size:1rem;line-height:1.55;margin:0;font-weight:500}
+.step p{font-size:.86rem;line-height:1.55;margin:8px 0 0;color:#555}
+.arrow{font-size:2.3rem;color:#e5a900;text-align:center;text-shadow:1px 1px 0 #8a6700}
+.row2{margin-top:22px}
+.down{grid-column:7;text-align:center;font-size:2.5rem;color:#e5a900;transform:rotate(0deg);margin:0 0 -5px}
+.return-arrow{grid-column:5;text-align:center;font-size:2.3rem;color:#e5a900;transform:rotate(180deg)}
+.note{margin:30px auto 0;max-width:1000px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:18px 22px;color:#dfe1ee;text-align:center;font-size:.9rem}
+
+@media(max-width:1000px){
+ .flow{grid-template-columns:1fr}
+ .arrow,.return-arrow,.down{display:none}
+ .step{min-height:unset;margin-bottom:15px}
+ .step:not(:last-child)::after{content:'↓';display:block;color:#e5a900;font-size:2rem;text-align:center;margin-top:15px}
+}
+@media(max-width:600px){
+ .container{padding:30px 15px 50px}
+ .title h1{font-size:1.45rem}
+ .step{padding:20px 17px}
+ .header-text h1{font-size:1rem}
+ .header-text h2{font-size:.9rem}
+}
+/* 🚪 สไตล์ปุ่มออกจากระบบสุดพรีเมียม */
+        .sidebar-logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 25px;
+            color: #fca5a5; /* สีแดงพาสเทล ดูแพง ไม่ฉูดฉาดเกินไป */
+            text-decoration: none;
+            font-size: 16px;
+            background: rgba(239, 68, 68, 0.05); /* พื้นหลังแดงจางๆ แบบกระจก */
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-logout-btn:hover {
+            background: rgba(239, 68, 68, 0.15); /* เข้มขึ้นตอนเอาเมาส์ชี้ */
+            color: #ef4444; /* ตัวหนังสือแดงสดขึ้น */
+            padding-left: 30px; /* ลูกเล่นขยับขวานิดนึงตอนชี้ */
+            border-left: 4px solid #ef4444; /* มีแถบเรืองแสงด้านซ้าย */
+        }
+</style>
+</head>
+
+<body>
+<header class="gov-header">
+  <div class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></div>
+  <div class="sidebar" id="mySidebar">
+    <a href="naruk.html"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+    <a href="training.html" class="current"><i class="fa-solid fa-book"></i> รายละเอียดการอบรม</a>
+    <li class="active"><a href="manual.html"><i class="fa-solid fa-file-lines"></i> ขออนุมัติการอบรม</a></li>
+    <a href="contact.html"><i class="fa-solid fa-phone"></i> ช่องทางการติดต่อ</a>
+    <!-- ปุ่มออกจากระบบ (ดีไซน์พรีเมียม) -->
+    <a href="#" onclick="localStorage.removeItem('trainingLoggedIn'); window.location.href='login.html'; return false;" class="sidebar-logout-btn">
+        <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
+    </a>
+  </div>
+  <div class="header-text">
+    <h1>องค์การบริหารส่วนจังหวัดเชียงใหม่</h1>
+    <h2>รายละเอียดการอบรม</h2>
+  </div>
+</header>
+
+<main class="container">
+  <div class="title">
+    <h1>ขั้นตอนการขออนุมัติ</h1>
+    <div class="line"></div>
+    <p>ไปอบรม / ประชุม / สัมมนา / ศึกษาดูงาน</p>
+  </div>
+
+  <div class="flow">
+    <div class="step"><div class="num">ขั้นตอนที่ 1</div><h3>หนังสือประชาสัมพันธ์จากภายนอก ลงรับที่สารบรรณกลาง</h3></div>
+    <div class="arrow">➜</div>
+    <div class="step"><div class="num">ขั้นตอนที่ 2</div><h3>กองการเจ้าหน้าที่แจ้งประชาสัมพันธ์ ต้นสังกัดแจ้งผู้สนใจและผู้ที่เกี่ยวข้อง</h3></div>
+    <div class="arrow">➜</div>
+    <div class="step"><div class="num">ขั้นตอนที่ 3</div><h3>ผู้สนใจและผู้ที่เกี่ยวข้องเขียนแบบแสดงเจตจำนงขออนุญาตตามสายบังคับบัญชาถึงปลัด อบจ. ตามตัวอย่างบันทึก</h3></div>
+    <div class="arrow">➜</div>
+    <div class="step"><div class="num">ขั้นตอนที่ 4</div><h3>ต้นสังกัดส่งหนังสือแจ้งความประสงค์ให้กองการเจ้าหน้าที่</h3></div>
+
+    <div class="down">↘</div>
+
+    <div class="step"><div class="num">ขั้นตอนที่ 8</div><h3>ส่งสำเนารายงานผลและเกียรติบัตร (ถ้ามี) ให้กองการเจ้าหน้าที่ เพื่อบันทึกใน กพ.7</h3></div>
+    <div class="arrow" style="transform:scaleX(-1)">➜</div>
+    <div class="step"><div class="num">ขั้นตอนที่ 7</div><h3>ภายหลังจากกลับจากอบรม / ประชุม / สัมมนา / ศึกษาดูงาน ให้รายงานตามแบบฟอร์ม เสนอผ่านผู้บังคับบัญชาถึงนายก อบจ.</h3></div>
+    <div class="arrow" style="transform:scaleX(-1)">➜</div>
+    <div class="step"><div class="num">ขั้นตอนที่ 6</div><h3>กองการเจ้าหน้าที่ส่งหนังสือที่นายกอนุมัติให้ต้นสังกัด เบิกค่าใช้จ่ายและลงทะเบียน รวมถึงค่าเดินทางไปราชการ ตามหลักเกณฑ์ที่กำหนด</h3></div>
+    <div class="arrow" style="transform:scaleX(-1)">➜</div>
+    <div class="step"><div class="num">ขั้นตอนที่ 5</div><h3>กองการเจ้าหน้าที่ทำหนังสือขออนุมัติให้สมัคร / ไปราชการ / หนังสือส่งตัว เสนอนายก อบจ. ลงนาม</h3></div>
+  </div>
+
+  <div class="note">
+    <i class="fa-solid fa-circle-info"></i>
+    หน้านี้จัดทำขึ้นใหม่ในรูปแบบเว็บ เพื่อให้สามารถอ่านขั้นตอนการขออนุมัติได้สะดวกทั้งบนคอมพิวเตอร์และโทรศัพท์มือถือ
+  </div>
+</main>
+
+<script>
+function toggleMenu(){
+  document.getElementById('mySidebar').classList.toggle('active');
+}
+</script>
+</body>
+</html>
